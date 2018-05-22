@@ -1,0 +1,314 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+https://stackoverflow.com/questions/32066402/how-to-perform-multiple-left-joins-using-dplyr-in-r
+
+https://daranzolin.github.io/articles/2016-12/join-list-dataframes
+
+https://stackoverflow.com/questions/8091303/simultaneously-merge-multiple-data-frames-in-a-list/34393416#34393416
+
+https://s3.amazonaws.com/assets.datacamp.com/production/course_1074/slides/ch4-pdf.pdf
+
+http://stat545.com/bit001_dplyr-cheatsheet.html 
+
+**1. What is the class of Nile? What is the time interval of the time series?**
+Nile is of class ts because it is a time series. The frequency of 1 year between 1871 - 1970 making for 100 observations.
+
+
+```{r}
+data(Nile)
+Nile
+class(Nile)
+```
+
+
+```{r}
+require(tidyverse)
+require(readr)
+require(purrr)
+daily.mean <- function(df) {
+  df %>% 
+  group_by(site = as.factor(site), date) %>% 
+  summarize(o3 = mean(obs, na.rm = TRUE)) %>% 
+  drop_na()  
+}
+
+o3.filenames <- list.files("./Data",pattern = ".txt", full.names = TRUE)
+o3.filelist <- lapply(o3.filenames, read_delim, delim = "|")
+d <- map(o3.filelist, daily.mean) 
+d
+
+
+```
+
+```{r}
+# working with a single station for santa barbara
+require(purrr)
+filter.station <- function(df, x) {
+  df %>% 
+  filter(site == x)
+}
+sb.o3 <- map(d, filter.station, 2008)
+sb.o3
+
+# make one dataframe
+sb <- sb.o3 %>% 
+  bind_rows()
+
+#visualize data
+ggplot(sb, aes(x = date, y = o3)) + geom_line()
+```
+
+*2. ts() only handles regularly spaced time series data. How do we deal with irregularly spaced time series? Do some internet research and describe some options, as well as pitfalls or limitations.*
+
+If you wanted to use the ts package then you would have do some gap filling or interpolation method to fill in those dates/times in the series.
+There is a fuction called tseries::irts which can be used to create an irregular time series. The package zoo can also deal with irregular time  series. 
+The issue with having an irregular time series that you cannot compute certain statistics or do certain analyses without one because you will not me your assumptions. 
+
+```{r}
+# designating a time series object
+sb.ts <- ts(sb$o3, start = c(1980,1), frequency = 365.25)
+#sb.ts
+```
+-- interpolation?
+
+### Plotting time series
+
+```{r}
+plot.ts(sb.ts)
+```
+
+### Autocorrealtion 
+When the time series lags with itself 
+
+```{r}
+# there is significant autocorrelation for all of the lags shown on the x-axis
+acf(sb.ts)
+
+# reducing requence to monthly data can help if the data are serially autocorrelated
+sb$mo <- as.factor(lubridate::month(sb$date))
+ggplot(sb, aes(x = mo, y = o3, group = mo)) + geom_boxplot()
+
+
+```
+
+
+```{r}
+require(lubridate)
+# take monthly median
+sb$yr <- year(sb$date)
+sb.mo <- sb %>%
+  select(-site, -date) %>% 
+  group_by(yr, mo) %>% 
+  summarize(o3 = median(o3)) 
+sb.mo
+
+ggplot(sb.mo, aes(x = mo, y = o3, group = mo)) + geom_boxplot()
+```
+
+
+```{r}
+# what does acf look like
+sb.mo.ts <- ts(sb.mo$o3, start = c(1980, 1), frequency = 12)
+acf(sb.mo.ts)
+```
+
+**3. What is the approximate lag for the o3 at this site in Santa Barbara? Provide this in meaningful units**
+
+The lag is 1 month. Meaning that months that are closer together are more correlated. 
+
+### Partial Autocorrelation
+correlation of the time seires with a lag of itself with the linear dependance of all the lags between them removed
+
+```{r}
+pacf(sb.mo.ts)
+```
+
+**4. Interpret this plot. What does this tell us? Use internet research as appropriate.**
+Considering the plot just shifted over I am assuming this means that while the monthly lag was removed there is correlation to some other  variable that oscillates.
+
+### Modeling our Time Series
+Need to understand if we meet the assumptions of the models 
+additive model is approriate for seaonsal fluctuations that are are roughly constant in size over time.
+and are not dependent on the level of hte time series. 
+
+additive model is NOT appropriate when the size of the seasonal fluctuations and random fluctuations seem to increase or decrease with the level of the time series. in this case we may need to trainsform the time series in order to get one that can use an additive model. 
+
+```{r}
+plot.ts(sb.mo.ts)
+```
+**5. Transform the monthly Santa Barbara o3 time series by calculating the natural log and plot the results. Which case (original or transformed) is best described by an additive model?**
+
+The transformation seems to add no improvements to the data, thus I would say that an additive model is appropriate for the initial dataset. You could probably fit some sort of model to both and compare this more scientifically. 
+
+
+```{r}
+plot.ts(sb.mo.ts)
+plot.ts(log(sb.mo.ts), add =T, col = "red")
+
+# ts.plot(sb.mo.ts, log(sb.mo.ts), gpars = list(col = c("black", "red")))
+```
+
+
+
+### Decomposing a Time series 
+To estimate the trend component and seasonal component of a seaonsal time series that can be descrive as an additive model
+We can use the decompose function
+trend, seasonal , and irregular components
+
+```{r}
+sb.components <- decompose(sb.mo.ts, type = "additive")
+plot(sb.components)
+```
+
+**6. What class is the resulting object from applying decompose()? What does it contain?**
+The class is decompsed.ts a
+It contains x which is the original data, the trend component, seasonal component, random (the remainder component), type which is the model and figure which is the estimated seaonsal figure only. 
+```{r}
+class(sb.components)
+names(sb.components)
+```
+
+
+### Lag a time series
+
+```{r}
+lagged.sb <- stats::lag(sb.mo.ts, 1)
+plot(lagged.sb)
+```
+
+### Seasonally Adjusting a Time series 
+
+If you have a seasonal time series that can be described using an additive model, you can seasonally adjust the time series by estimating the seasonal component, and subtracting the estimated seasonal component from the original time series. We can do this using the estimate of the seasonal component calculated by the decompose() function.
+
+```{r}
+sb.adj <- sb.mo.ts - sb.components$seasonal
+plot(sb.mo.ts)
+lines(sb.adj, col = "red")
+```
+
+```{r}
+# Zoom in
+plot(sb.mo.ts, xlim = c(2005,2010))
+lines(sb.adj, col = "red")
+```
+**7. Assess the additive model performance. How well did it adjust for seasonality in Santa Barbara o3? Show your steps.**
+Visually it looks like it adjusted for seaonsality.
+I want to say we can do some sort of variance test or anova to test this.. If we look at the results of the variance test we can see that they are significant.
+
+```{r}
+require(wql)
+mannKen(sb.mo.ts,sb.adj)
+var.test(sb.mo.ts, sb.adj)
+```
+
+
+
+### Trend Tesing 
+```{r}
+
+
+mk <- mannKen(sb.mo.ts)
+mk
+```
+
+### Seasonal Mann-Kendall
+
+```{r}
+mk2 <- seaKen(sb.mo.ts)
+mk2
+seasonTrend(sb.mo.ts, plot = TRUE, scales = "free")
+```
+
+```{r}
+plotSeason(sb.mo.ts, "by.month")
+```
+
+**8. What can you conclude about the appropriateness of the Seasonal Mann-Kendall test for trend for this case?.**
+The seasonal mann kendal is not appropriate for this because the trends for different months differ in sign (which means the test is not informative). This is not to say that the test is not appropriate for other sites, but for santa barbara it might not be. 
+
+### Test for Homogeneity of Seasonal Trends
+
+```{r}
+trendHomog(sb.mo.ts)
+pett(sb.mo.ts)
+plot(sb.mo.ts, ylab = "Ozone", xlab = "")
+abline(v = 2001.083, col = "blue")
+```
+
+### Visualizing Anomolies
+
+```{r}
+plotTsAnom(sb.mo.ts, ylab = "Ozone")
+```
+
+```{r}
+plotTsTile(sb.mo.ts)
+```
+
+**9. What are the trends in monthly Ozone across California from 1980 - 2011? Compare trends between different air quality basins. Show your work and justify your statistical assumptions. **
+
+```{r}
+
+### Create monthly mean function
+monthly.mean <- function(df) {
+  df %>% mutate(monthYear = format(date, "%Y-%m")) %>%
+  group_by(site = as.factor(site), monthYear) %>% 
+  summarize(o3 = mean(obs, na.rm = TRUE)) %>% 
+  drop_na()  
+}
+
+## apply to our dataframe 
+o3.filenames <- list.files("./Data",pattern = ".txt", full.names = TRUE)
+o3.filelist <- lapply(o3.filenames, read_delim, delim = "|")
+mData <- map(o3.filelist, monthly.mean) 
+mDataBind <- bind_rows(mData)
+
+# Find sites that have the appropriate amount of observations
+# alright so this is about to get messy
+# if the data were regular for every site then they would have the from 1980 - 2011 - thats 32 years of data assuming that 
+# we have all the way through 2011. sooo 32 x 12 = 384 observations
+dataCount <- mDataBind %>% count(site)
+selectR <- dataCount[dataCount$n == 384,]
+completeSites <- selectR$site
+
+# filter mDataBind by this
+mDataBind2 <- mDataBind %>% filter(site %in% completeSites) %>% group_by()
+
+### yeaaah loops...
+for (i in 1:length(completeSites)) {
+  siteName <- completeSites[i] #i
+  subsetData <- mDataBind2 %>% filter(site == siteName)
+  subsetData.ts <- ts(subsetData$o3,c(1980, 1), frequency = 12)
+  plot.ts(subsetData.ts)
+  seasonTrend(subsetData.ts, plot = TRUE, scales = "free")
+}
+
+## Why are both not plotting ?
+## the last one ins all blue
+
+
+
+# testing out this innerjoing thing
+# I am not sure why you would want your data to look like that?? I am sure you can some how restack 
+# I get what you are saying with the
+t4 <- list(mData[[1]],mData[[2]])
+t3 <- t4 %>% reduce(inner_join, by = c("site"))
+
+
+```
+
+```{r}
+for (i in 1:length(completeSites)) {
+  siteName <- completeSites[i] #i
+  subsetData <- mDataBind2 %>% filter(site == siteName)
+  subsetData.ts <- ts(subsetData$o3,c(1980, 1), frequency = 12)
+  seasonTrend(subsetData.ts, plot = TRUE, scales = "free")
+}
+
+```
+
