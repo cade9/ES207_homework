@@ -1,0 +1,343 @@
+---
+title: "ES207- Lab2"
+author: "Christiana Ade"
+date: "Feburary 3, 2018"
+output:
+  html_document:
+    df_print: paged
+---
+## Debugging 
+
+**1. How can you find out where an error occurred?**
+
+  You can find where an error occured using several methods. 
+  
+  + Sometimes the error message will include a problematic line, or you can google the error to figure out what exactly is going wrong with your code. I tend to find this is more the approach you take when you are working with someone else functions, rather than debugging your own
+  
+  + You can use print statements throughtout your script to make sure certain 'chunks' of your code are doing what they expect. 
+  
+  + R also has an interactive debugging browser that you can access in three different ways (learned in this lab). This includes the functions ```debug(), setBreakPoint()```, and ```browser()```
+
+**2. What does browser() do? List the 5 single-key commands that you can use in the browser() environment.**
+  
+  The function ```browser()``` allows you to interrupt an expressition from being executed. When evaluating this placed in a particular function itself at the place where you want the code to stop running and then allows inspection using the debugging browser (at the line you placed the function).
+  
+  The five single key commands you can use in browser are:
+  
+  + ```c``` exit the browser and continue to the next statement
+  
+  + ```f``` finish execution for the current loop or function
+  
+  + ```n``` evaluate next statement. stepping over function calls
+  
+  + ```s``` evaluate next statement. stepping into fucntion calls
+  
+  + ```r``` invoke a "resume" restart
+  
+
+**3. Debug the function below. Demonstrate all of your steps, provide the correction function with clear documentation, and provide confirmation it works as expected.**
+
+```{r, error = T}
+# Step 1: We have the function with issues 
+ciao <- function (x) {
+  if (x = 0) salutation) <-  "Buongiorno!" else
+        else
+    (salutation) <- "Arrivederci!"
+} 
+```
+
+```{r, error=T}
+# Step 2: R is giving us an x on the line starting with the if statement 
+# This is because there is a unmatched parentheses right after salutation
+ciao <- function (x) {
+  if (x = 0) salutation <-  "Buongiorno!" else
+        else
+    (salutation) <- "Arrivederci!"
+} 
+```
+
+```{r, error =T }
+# Step 3: next we get an error that says unexpected '='. This is because this needs to be a ==
+ciao <- function (x) {
+  if (x == 0) salutation <-  "Buongiorno!" else
+        else
+    (salutation) <- "Arrivederci!"
+} 
+
+```
+
+```{r, error = T}
+# Step 4: next we get an error that says unexpected 'else' in this line 
+# Lets look at the synax if an if...else statement in R
+
+# if (test_expression){
+# statement1
+# } else {
+# statement2
+# }
+# https://www.datamentor.io/r-programming/if-else-statement
+# QUESTION FOR ERIN: does '/ /' not work as way for commenting large blocks of code in Rstudio
+# because it works in eclipse
+
+# oh so there should be {} brackets included for the if and the else statements 
+# oh and while we are at it, there should only be one else because we only have two statements 
+ciao <- function (x) {
+  if (x == 0){ 
+    salutation <-  "Buongiorno!" 
+    } else {
+    (salutation) <- "Arrivederci!"
+    }
+}
+# lets test it 
+ciao(0)
+# we get no errors, but nothing returns and there is no return statement
+```
+
+```{r, error = T}
+## Step 5: now we have an error stating that the object salutation is not found
+# oh there are () around salutation
+ciao <- function (x) {
+  if (x == 0){ 
+    salutation <-  "Buongiorno!" 
+    } else {
+    (salutation) <- "Arrivederci!"
+    }
+  return(salutation)
+}
+
+```
+
+
+```{r}
+# Step 6: FINALLY!
+ciao <- function (x) {
+  if (x == 0){ 
+    salutation <-  "Buongiorno!" 
+    } else {
+    salutation <- "Arrivederci!"
+    }
+  return(salutation)
+}
+
+
+# lets test it on several numbers and practice using lapply
+testList <- c(0,1,-1,55)
+lapply(testList, ciao)
+# actually lets simply to a character vector
+sapply(testList, ciao)
+```
+
+**4. The following function "lags" a vector, returning a version of x that is n values behind the original. Improve the function so that it (1) returns a useful error message if n is not a vector, and (2) has reasonable behaviour when n is 0 or longer than x.**
+
+```{r,error = T}
+# QUESTION ERIN: you were missing a ) and had one in the wrong place on the c(rep()) line
+# was that intentional?
+lag <-  function (x, n=1L) {
+  xlen <- length(x)
+  c(rep(NA, n), x[seq_len(xlen-n)]) 
+}
+
+
+# Fixing the function
+lag <- function(x, n = 1L) {
+  #if(!is.numeric(x)) {stop('x is not numeric')} # I guess we still want this to work
+  # not ness. but perhaps someone is confused about how the function is supposed to work
+  if(length(x)==1 |length(x)==0){stop('x is not an acceptable length')} 
+  if(!is.numeric(n)) {stop('n is not numeric')} # even a single number is a vector 
+  if(n>length(x)){stop('n is longer than x')}
+  if(n==0){stop('n is 0, so this will not work')} #could combine this and the other line
+  xlen <- length(x)
+  c(rep(NA, n), x[seq_len(xlen - n)])
+}
+
+lag(8,4) # we need x to be multiple values
+lag(c("R","is","super","cool"),1) 
+lag(1:10, 'meow') # in case we try to input something of
+lag(1:10, 17)
+lag(1:10, 0)
+lag(1:20,3) # it works
+```
+
+
+
+## Apply your knowledge to real data
+```{r, message = FALSE}
+# read in BayDeltaWQ
+require(tidyverse)
+require(moments)
+library(dplyr)
+setwd("C:\\Users\\cade\\Documents\\PhDMerced\\Spr18Courses\\EnvironmentalDataAnalysis\\Homework\\Lab2")
+wQ <- read_csv("BayDeltaWQ.csv", col_names = TRUE, na = c("NA", "n/p", "n/a"))
+#names(wQ) <- gsub("\\..","_",names(wQ)) # I don't like the dots...but this is not needed
+#need conductance data "Conductance..EC." [4] and Secchi depth = "Secchi.Depth" [12]
+
+```
+
+**5. Write a function that calculates the mean, median, standard deviation, interquartile range, and skew. Apply that function to EC data and Secchi Disk depth. Discuss the differences between these measures and what conclusions you can draw about the data.**
+
+Diffrence between measures
+
+ + ```mean``` is an  average of the numbers in the dataset. Its a calculated "central" value (might not actually be the center), but if we looked a plot of the distribution the mean would be that central value of a regular normal distripution. 
+ 
+ + ``` median ``` is essentially ranking all the values and then the value in the middle is picked with equal amounts of numbers on both sides.
+ 
+ + ``` standard deviation``` is used to quanitfy how variation in a dataset. So how spread are the values. 
+ 
+ + ``` interquartile range``` another measure of variability that is determined by spliting the data up into quarities and it is the difference between the upper and lower quarites (75th and 25th percentile)
+ he IQR is a measure of variability, based on dividing a data set into quartiles
+ 
+ + ``` skewness ``` is measure of the asymmetry of the probability distribution. 
+ 
+ There are some cases in which the median better represents the data rather than the mean. For example, distributions that are skewed either to the left of right. For conductance, the difference between the mean value and the median value is extremely large. The median value is much lower suggesting that the data is strongly right skewed.While this is less drastic in terms of the Secchi Depth this is also true and the data is right skewed. This is futher supported by the standard deviation and the skew. The  standard deviation is pretty large for both categories indicating that the data are spread out a long a larger range. While the skew is positive indicating that the tail on the right side is longer than that on the left. The large IQR also shows that the data is skewed because there is a large difference in the upper and lower quartiles.
+
+```{r}
+summary1 <- function(x) {
+  funs <- c(mean, median, sd, skewness, IQR )
+  lapply(funs, function(f) f(x, na.rm = T))
+}
+
+wQSummary <- wQ %>%
+  select("Conductance (EC)","Secchi Depth") %>%
+  sapply(summary1) %>%
+  data.frame() %>%
+  mutate(statistic = c("mean","median","sd","skewness","IQR")) 
+#if this was in the summary1 function that would better. I know I need to use vapply
+# where is tha example though?
+wQSummary
+```
+
+
+**6. Plot the histogram, boxplot, and cumulative density of EC data in the Bay Delta for EACH station.**
+```{r}
+## Histograpm plotting 
+# solution using piping?
+## not very effective plotting method with so much data 
+## how do you feed it into individual plots?
+# nest and then map?
+# wQ %>%
+#   #group_by(StationCode) %>%
+#   select(`Conductance (EC)`,StationCode) %>%
+#   #nest(StationCode)  %>%
+#   ggplot(aes(`Conductance (EC)`)) +    geom_histogram(na.rm =T ) +
+#       facet_wrap(~StationCode)
+
+
+
+### histogram...bad with loops
+sites <- unique(wQ$StationCode)
+try(for (i in 1:length(sites)){
+   mySub <- subset(wQ,StationCode == sites[i] ,select = `Conductance (EC)` )
+    myPlot <- ggplot(mapping = aes(mySub)) +
+    geom_histogram(na.rm =T )
+    print(myPlot + ggtitle(sites[i]))
+}) 
+
+
+```
+
+```{r}
+## boxplot
+
+sites <- unique(wQ$StationCode)
+try(for (i in 1:length(sites)){
+   mySub <- subset(wQ,StationCode == sites[i] ,select = `Conductance (EC)`)
+    myPlot <- ggplot(mySub, aes(x= "",y = `Conductance (EC)`)) +
+    geom_boxplot(na.rm = T)
+    print(myPlot + ggtitle(sites[i]))
+}) 
+```
+
+```{r}
+## cummulative density plot
+sites <- unique(wQ$StationCode)
+try(for (i in 1:length(sites)){
+   mySub <- subset(wQ,StationCode == sites[i] ,select = `Conductance (EC)` )
+    cdf_fun <- ecdf(mySub$`Conductance (EC)`)
+    plot(cdf_fun, xlab = "Conductance (EC)", ylab = "Probability", main = sites[i])    
+}) 
+
+
+
+```
+
+
+**7. Compare the mercury concentrations from the station with the highest concentration and the lowest concentration using a Q-Q plot. Also plot two other types of graphs. Describe the similarities and differences in Mercury. What characteristics are evidet in each graph?**
+
+If we look at a frequence plot of all Mercury data we can see that there is no station with the highest [hg] or lowest [hg]. From these plots we can see two things, 1) There is no single station or pair of stations to select 2) Excluding NA's, there are only 4 values avaliable for mercury concentration: 0.1,0.2,0.3,1.0. Several of the stations, such as P10 only have one value of mercury recorded, which is problematic seeing as a QQPlot is used to check the validity of a distribution (normal QQ for normal distibution) assumption for a given dataset . Therefore, in cases were there is only one value for a given station the QQplot would confirm that the data is not normally distributed. When you look at the QQplot it somewhat looks bi-modal with some very high values and some very low values spanning across the whole dataset. Additionally, you may want to group the stations by some other variable to get a better understand of what is going on. Perhaps location or year. 
+
+
+```{r}
+## Historgram of all the stations together
+# not  very effective to look at. 
+wQ %>%
+  select(`Mercury (Total)`,StationCode) %>%
+  na.omit() %>%
+  ggplot(aes(`Mercury (Total)`)) +
+    geom_histogram(stat ="count")+
+      facet_wrap(~StationCode)
+
+# histrogram all data
+wQ %>%
+  select(`Mercury (Total)`,StationCode) %>%
+  na.omit() %>%
+  ggplot(aes(`Mercury (Total)`)) +
+    geom_histogram(stat ="count")
+
+# Verify that some stations only have one value 
+wQ %>%
+  filter(StationCode == "P10") %>%
+  select(`Mercury (Total)`) %>%
+  unique()
+```
+
+Normally when there is somewhat of a break in the middle of the QQplot one would say that the data are bi-modal. how meaningful is that here?
+```{r}
+## QQplot of all the stations
+wQ %>%
+  select(`Mercury (Total)`,StationCode) %>%
+  ggplot(mapping = aes(sample = as.numeric(`Mercury (Total)`), col = StationCode)) +
+  stat_qq()
+
+#group_by(StationCode) %>%
+
+```
+
+
+```{r}
+# histogram of all the stations together
+wQ %>%
+  select(`Mercury (Total)`,StationCode) %>%
+  na.omit() %>%
+  ggplot(aes(`Mercury (Total)`)) +
+    geom_histogram(stat ="count")
+
+# if we try to make a denisty plot which will use a guassian kernel to smooth the data by default 
+# there is no smoothing. 
+wQ %>%
+  select(`Mercury (Total)`,StationCode) %>%
+  na.omit() %>%
+  ggplot(aes(`Mercury (Total)`)) +
+    geom_density(stat ="count")
+
+## cummulative 
+
+merc <- wQ %>%
+  select(`Mercury (Total)`,StationCode) %>%
+  na.omit() 
+
+cdf_fun <- ecdf(merc$`Mercury (Total)`)
+plot(cdf_fun, xlab = "Conductance (EC)", ylab = "Probability")   
+
+
+```
+
+#### random notes to self ... ignore
+
+- distriubtion linear space linear distributed
+- you know it its skewed high and low
+- you see if it is high and low
+- plot by date: difference in method
+- is mercury increasing over time 
+- continuous data
+- 78-88 - drought, el nino 82/83 el nino
+- not all the time series are complete in the dataset 
