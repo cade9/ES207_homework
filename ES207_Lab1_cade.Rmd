@@ -1,0 +1,650 @@
+---
+title: "ES207- Lab1"
+author: "Christiana Ade"
+date: "January 28, 2018"
+output: pdf_document
+---
+
+##### First R session
+1. What happens if you try to print out the 4th element of x? Print your result nad provie the answer in your lab write up. 
+- An NA is returned because there is no 4th element of the vector x. 
+```{r}
+x <- c(1,2,4)
+x[4]
+```
+
+2. Try creating a variable "s" that is the standard devitation of q. Make sure you print it out to confirm it worked.
+```{r}
+q <- c(x,x,8)
+s <- sd(q)
+s
+#s is 2.478479
+```
+
+##### Some Basic Operations in R
+3. Can you make R write your name
+```{r}
+paste("Christiana","Ade")
+# if I wanted to save my name as a variable
+myName <- paste("Christiana","Ade")
+myName
+```
+##### List All Objects in the Environment 
+4. What objects are left in you R session after removing m?
+- This depends on if you are asking us what remains in our environment after we run the code you asked us to write for homework too, or it is just the variables you have assigned in the lab.
+- If it is just the assigned variables in the homework, then we would be left with 
+"a" "b" "c" "d" "q" "x" "y"
+- If it is including the variables you asked us to assign then tge variables left are below:
+- I most likely have one extra variable than the other students because I assigned myName to variable
+
+```{r}
+m <- 100
+ls()
+rm(m)
+ls()
+```
+##### Introduction to Functions
+5. How many odd numbers were in this vector? (line 59)
+  - There were 4 even numbers in this character vector.
+```{r}
+oddcount <- function(x) 
+{
+    k <- 0 # assign 0 to k
+    for (n in x) {
+        if(n %% 2 == 1)
+        {
+            k <- k+1 # %% is the modulo operator
+        }
+    }
+  return(k)
+}
+oddcount(x <- c(1,2,3,7,9))
+```
+
+6. Try creating a new function "evencount" that counts the even numbers in a vector. Turn in your script as a .R script with appropriate comments. 
+```{r}
+evencount <- function(x){
+  k <- 0  # assign 0 to k
+  for (n in x){
+    if (n %% 2 == 0){ ## divide the given number by 2 if the remainder is 0 then it is an even number
+      k <- k+1 # add this number to count of even numbers
+    }
+  }
+  return(paste("There are",k,"even numbers!")) # return the amount even numbers
+}
+evencount(x <- c(1,2,6,10,11))
+```
+
+##### Making good directory layouts
+7. What are the three main reasions you want to have a good project layout? Can you think of any others?
+    i. Integrity of data
+    ii. Portability of the project 
+    iii. Easier to pick the project back up after a break 
+    * answers from :https://nicercode.github.io/blog/2013-04-05-projects/
+    - All of these reasons help with transparency and reproducability issues. 
+8. What are the three primary principles to follow in a good project layout. 
+    i. Treat data as read only.
+      - This ensures that you do not accidenally edit your data. 
+    ii. Treat generated output as a disposable
+      - Any edits to your data, and output generated including figures etc, should be able to be deleted at any           moment during the project.
+    iii. Separate function definition and application 
+          - When completing your own project it is likely that you will write your own functions that you use                 repeatedly.Hhousing them in a separate place and then calling them at the beginning of your script                (like packages) will make your scripts cleaner and shorter. 
+
+##### Full, base, and relative paths
+9. Write out the full path for your R installation. Use the format of the operating system you are currently using. 
+
+```{r}
+R.home()
+# My path installation is "C:\Program Files\R\R-3.3.0"
+```
+
+10. Write the path above using a different operating system
+```{r}
+#Not really sure where the program files of macs go, but it would be something like this 
+#/Program Files/R/R-3.3.0
+```
+
+
+11. Write out the full path for the directory structure you have set up for this class all the way to where you have saved this .html tutorial
+```{r}
+#"C:\Users\cade\Documents\PhDMerced\Spr18Courses\EnvironmentalDataAnalysis\Homework\Lab1\Lab1_tutorial.html"
+```
+
+
+12. Write out the relative path for this .html file assuming your working directory to be set to your equivalent of  Users/DavidBowie/classes/.
+```{r}
+#"C:\Users\cade\Documents\PhDMerced\Spr18Courses"
+```
+
+
+13.Write out the paths in an operating system other than your own.
+```{r}
+  '/In Q11: 
+  /Users/cade/Documents/PhDMerced/Spr18Courses/EnvironmentalDataAnalysis/Homework/Lab1/Lab1_tutorial.html
+  - In Q12: 
+  /Users/cade/Documents/PhDMerced/Spr18Courses
+/'
+```
+
+
+  
+##### Obtaining Help in R
+
+14. Using the help documentation, provide an alternative usage for the function ncol()
+- I am not sure exactly what you mean by an alternative usage. The help recommends using nrow() as another function, but I am assuming you are refering to using dim() as a way to figure out what the dimenisions of a matrix are, which would also allow you to see the number of columns in your dad.
+
+
+##### Generating Vectors
+15. Create and print a new vector, w that is a subset of the first 4 elements of vector v, where v <- c(8:19)
+```{r}
+v <- c(8:19)
+w <- c(v[1:4])
+w
+```
+
+16. Create and print a new vector, h that is a subset of the middle 5 elements of vector d, where  d <- c(8:20)
+``` {r}
+d <- c(8:20)
+#which(d %in% median(d)) #check where the middle is...only works vectors with an odd length
+h <- c(d[5:9])
+h
+```
+##### Obtaining the length of a vector
+17. What is the length of vector d from above?
+- The length is 13
+```{r}
+length(d)
+```
+
+##### Types, Testing & Coercion of Vectors
+18. What are the 3 properties of a vector other than its contents
+    i. Type. What kind of vector is it. Can be tested using ```typeof()```
+    ii. Length. How many elements it contains. Tested using ```length()```
+    iii. Attributes. Any addition metadata. ``` Attributes()```
+    
+##### Coercing Vectors
+
+19. Can you predict the output of the following uses of c()? c(3,FALSE) c("a",1) c(4L,2)
+    My predictions:
+    i. "double" - one is double and other is logical. Doesn't make sense that it would go to logical. 
+    ii. "character" - similar to example 
+    iii. "double" - one is integer and other is double
+```{r}
+#Let's see what really happens 
+# find typeof the three situtations and save to a variable
+a <- typeof(c(3, FALSE))
+b <- typeof(c("a",1))
+c <- typeof(c(4L,2))
+
+myPrediction = c("double","character","double")
+realAnswers = c(a,b,c)
+# test if the two are identical if true then print "your predictions were right"
+if (identical(myPrediction,realAnswers) == TRUE){
+  print("Your predictions were right")
+} else{
+  print("nooooooo")
+}
+```
+
+20. What are the 4 types of common atomic vectors? What are the 2 rare types?
+    *Main*
+    i. Character
+    ii. Numeric
+    iii. Integer
+    iv. Logical
+    
+    *Rare*
+    i. complex
+    ii. raw
+    
+21. Why is 1=="1" true? Why is -1 < FALSE true? Why is "one< 2 false?
+a) 1=="1".
+- if we look at the documentation of == by typing in ?"=="
+- we see that: If the two arguments are atomic vectors of different types, one is coerced to the type of the other, the (decreasing) order of precedence being character, complex, numeric, integer, logical and raw.
+- they are both atomic. Therefore, R is coercing one side of the == to the other type of atomic vector. I would assume that it is coercing 1 to become "1" since if we do type(n) it returns character and that character is the first in the list of precedence above
+- however if we test they are identical without using == then FALSE is returned. 
+```{r}
+n <- "1"
+m <- 1
+is.atomic(m)
+is.atomic(n)
+identical(1,"1")
+```
+b) Similarly to before one type must be coerced to the other and here integer is more flexible than logical (according to list above). Based on the notation I would assume that FALSE gets coerced into int 0. In which -1 is less than 0.
+
+c) assuming you meant "one" < 2
+I would not have ever expected this to be true because "one"" is a character and the other is a number.Therefore, R will coerce 2 into "2" and this statement will be FALSE. 
+
+
+22. Why is the default missing value NA, a logical vector? What’s so special about logical vectors? Hint: think about c(FALSE,NA_character)
+- Besides raw, logical vectors are the highest type on the hierarchy of coercion. This means that they will be coerced before the other datatypes (such as doubleand character). If we look down below we see that vector b will result in type double because NA (logical) is coerced to an integer. If NA was of class character and then paired with numbers (such as in vector c1) the type will be coerced to character. Since NA's occur often in environmental data collection and are likely to be included in a vector with numerical data, everything in that vector will get treated as type character. This is generally bad, since we most likely will want to do some type of computing on numbers, not characters. 
+```{r}
+y <- c(FALSE,NA)
+typeof(y)
+x <- c(FALSE, NA_character_)
+typeof(x)
+b <- c(1,NA)
+typeof(b)
+c1 <- c(1, NA_character_)
+typeof(c1)
+```
+
+##### Indexing Vectors
+23. Provide the value of the last element in the result of the vector operation d * 2 from the vectors defined above
+```{r}
+#assuming this is vector d
+d <- c(8:20)
+newD <- d * 2
+newD[length(d)]
+# 40 is the last element
+```
+
+24. Create a vector a with a sequence of 11 elements in it ranging from 0.6 to 1.9. Create another, logical vector b that identifies which elements in a are greater than or equal to 1.1. Print your results.
+
+```{r}
+a <- seq(0.6,1.9,by = 0.1)
+b <- which(a >= 1.1)
+b
+```
+
+25. Set all elements in vector a from above to 2.0 if they are greater than or equal to 1.1.
+```{r}
+a[a >= 1.1] <- 2.0
+a
+```
+
+##### Generating Lists
+26. Use str() to compare the results of using list() and c() on l and j for: l <-c(list(1,2),c(3,4)) and j=list(list(1,2),c(3,4))
+
+```{r}
+l <- c(list(1,2),c(3,4)) #combines several lists. atomic vectors + list --> coerce to list before combining
+j <- list(list(1,2),c(3,4))
+str(l) 
+# returns a list of 4 numbers
+str(j) # a list of two numbers and then vector numbers 3 and 4
+```
+
+##### Types, Testing & Coercion of Lists
+27. Show what happens when you use unlist() on l and j
+```{r}
+unlist(l)
+unlist(j)
+# the same thing happens to both
+```
+##### Factors
+28. If factors are essentially integers under the hood, why do we use them, and not just use integers (e.g., 1s and 2s instead of male, female)?
+- They are important for statistical modeling because you can compute statistics using categorical variables, but you need them to be entered in differently than continuous variables. 
+- Since you can specify levels you can also compare levels. 
+
+##### Generating Factors
+29. Using table(), provide the frequency of no and yes in my.fac.
+```{r}
+my.fac <- factor(c("yes", "yes","no","yes","yes","yes"))
+table(my.fac)
+```
+
+##### Types, Testing and Coercion of Factors
+30. What does this R code below do? How are f1 and f2 different from f3?
+- f1: letters are first convered to factors. Then the levels of f1 are reversed. Which both reverses the way that the letters are displayed and the levels.
+```{r}
+f1 <- factor(letters)
+levels(f1) <-rev(levels(f1))
+f1
+```
+- f2 you are only reversing the order of the factors, but not the order of the levels
+```{r}
+f2 <- rev(factor(letters))
+f2
+```
+- f3 you are greating factors where 
+```{r}
+f3 <- factor(letters, levels=rev(letters))
+f3
+```
+
+In f1 and f2 you are changing the letters to factors first and then changing either the levels or the letter order to be reserved, where as in f3 you are telling the function factor to change letters to a factor and then just reverse the levels within the factor command. In f1 both are reversed. In f2 the letters are reversed by not the levels. In f3 the letters only the levels are reversed. 
+
+
+##### Indexing Matrices
+31. If is.matrix(x) is TRUE, what will is.array(x) return?
+ - It will also return true because its just a matrix is a two-dimensional array
+```{r}
+y<-matrix(1:12*3,nrow=4,ncol=3)
+is.matrix(y)
+is.array(y)
+```
+
+##### Generating Data Frames
+32. Why didn’t that work? Hint: read the errors
+-This didn't work because we are trying to make a dataframe with two columns that have different low lengths.
+The first column kids only has 2 entries and the second column ages has three
+```{r}
+d <- data.frame(kids=c("Jack","Jill"),ages=c(12,10))
+d
+#f <- data.frame(kids=c("Jack","Jill"),ages=c(12,10,11))
+```
+
+33. What does as.matrix() do when applied to a data frame with columns of different types?
+- If we print the matrix it appears if it turns everything in the data frame to a character
+```{r}
+m <- as.matrix(d)
+m
+# to verify that
+class(m[1,2])
+```
+
+34. What if we don’t have the same variable name? Change the data frame variables names using  names(d2) <- c("ages","kids"). Then, use the help documentation to merge d1 and d2. Print your results.
+
+```{r}
+d1 <- data.frame(names=c("Jack","Jill","John"),states=c("CA","IL","IL"))
+d2 <- data.frame(ages=c(10,7,12),names=c("Jill","Jillian","Jack"))
+names(d2) <- c("ages","kids")
+merge(d1,d2, by.x = "names", by.y= "kids")
+```
+
+##### Types, Testing and Coercion 
+** is this supposed to be the name of this section? 
+
+35. Can you have a data frame with 0 rows? What about 0 columns?
+```{r}
+#Yes, you can have a data frame with 0 rows
+noRows <- data.frame("class" = integer(0))
+noRows
+dim(noRows) # 0 1
+class(noRows) # data.frame
+
+#Yes, you can have a dataframe with 0 columns, but it will also have 0 rows
+df <-data.frame(NULL)
+df
+dim(df) #0 0
+class(df)
+```
+36. Plot a histogram of all the Sepal.Width values in the dataset iris that are less than or equal to 3.0
+```{r}
+# one way
+# select all the columns with matrix notation 
+df <- iris[iris$Sepal.Width >= 3.0, ]
+hist(df$Sepal.Width, main ="Frequency of Sepal Width Values in Iris greater or equal to 3.0")
+# can select with subset
+df <- subset(iris, Sepal.Width >= 3.0)
+# With tidyverse just to practice
+#require(tidyverse)
+#new <- filter(iris, Sepal.Width >=3.0)
+#hist(new$Sepal.Width,main ="Frequency of Sepal Width Values in Iris greater or equal to 3.0")
+'/ Dont forget to ask Erin how to do this?
+  n <- iris %>%
+  filter(Sepal.Width >= 3.0) %>%
+  select(Sepal.Width)%>%
+  do(a=hist(.)) 
+/'
+```
+
+##### Applying functions to dataframes
+37. Try using apply on ‘d’. What happens? Why?
+ - we get an error because the first column gender is of class factor while the others are of class numeric. In order for apply to work they all have to be of the same class type. 
+```{r}
+d <- data.frame(gender=c("M","M","F","M","F","F"),
+        age=c(47,59,21,32,33,24),
+        income=c(55000,88000,32450,76500,123000,45650))
+d$over25 <- ifelse(d$age > 25, 1, 0) # 1 is row by row, 2 column by column
+#apply(d,2, mean)
+
+class(d$gender)
+
+#if we delete that column then we can use apply
+d <- d[,-1]
+apply(d,2,mean)
+```
+
+##### Loops 
+38. What is a loop? Can you provide me with a real-life example in either remote sensing or your own research where such a thing would be handy?.
+- A loop is how you repeat the same set of instructions/opperations for a given set of variables/objects.
+- This is very useful in remote sensing when conducting time series analysis. It is particularly useful for image processing because you will want a large set of images to be processed in the same way. 
+
+39. What does it mean to “grow” variables or datasets using a loop? Show an example of code that does this.
+- Growing variables means that a  variable assignment is made for every iteration. 
+```{r}
+#adapted from example on https://www.r-bloggers.com/a-tutorial-on-loops-in-r-usage-and-alternatives/
+mymat<-matrix(c(seq(1,25,1)), nrow = 5, ncol =5 ) # create matrix of normal random numbers
+mydframe=data.frame(mymat)    # transform into data frame
+for (i in 1:2) {
+   for (j in 1:2) {
+     mydframe[i,j]<-mydframe[i,j] + 2
+     print(mydframe)
+   }
+ }
+```
+
+
+40. In 500 words or less, discuss why you would want to write loops, why some people look down on them in R, what the suggested alternative is.
+- You would want to write loops at any point in which you want to repeat a set of commands on sevaral objects of the same type. For raster analysis or any really large dataset, you would most likely want to continue to use loops because having several rasters loaded into your environment at once is not recommended. That way it is better if you read in your data, perform your commands, save your data, remove your data and then read in the next set and repeat. 
+- Some people look down on them because loops are slow in  R, especially when you compare them to other programing languages. In addtion, I and most likely several other people can find loops to be very long chunks of code that can confuse a reader about what exactly the purpose of the code block is.  You can use vectorization and the apply family in R. This is a feature that very few other languages have and often is much faster than loops and more importantly it takes up less space in your script and makes your scripts cleaner. 
+
+##### For Loops
+41. Write a loop that calculates the square of the first 10 elements in the vector x, where x <- rnorm(40)
+```{r}
+x <- rnorm(40)
+for (i in 1:10){
+  n <- x[i] ^ 2
+  print(n)
+}
+```
+
+##### For Loops
+42. Write a while loop that prints the even numbers from 4 through 29.
+
+```{r}
+for(i in 4:29)
+{
+    if(i %% 2 == 1) next
+    print(i)
+}
+```
+43. Write a while loop that prints multiples of 10 from 100 to 190.
+
+```{r}
+i <- 100
+while (i <= 190){
+  print(i)
+  i <- i + 10
+}
+```
+
+44. Create a 10 x 10 matrix of random numbers. Write a loop that replaces the 3rd row and 5th column of numbers with “ciao”.
+
+```{r}
+m <-  matrix(runif(100), nrow= 10,ncol=10)
+
+for (i in 1:10){
+  if(i == 3  ){
+    m[i,] <- "ciao"
+  } else if( i == 10){
+    m[,i] <- "ciao"
+  }
+}
+m
+```
+
+
+##### Boolean operators
+45. Create a 100 x 100 matrix of random numbers. Use the system.time() function to measure the execution of a loop that calculates 10*sin(0.9*pi) on the matrix. Then use system.time() to measure the vectorized solution.
+
+*loop solution*
+```{r}
+set.seed(45);
+m=100; n=100;
+mymat<-matrix(runif(10000), nrow= 100,ncol=100) # create matrix 
+mydframe=data.frame(mymat)    # transform into data frame
+system.time(
+  for (i in 1:m) {
+    for (j in 1:n) {
+      mydframe[i,j]<-mydframe[i,j] + 10*sin(0.75*pi)
+    }
+  }
+)
+
+#   user  system elapsed 
+#   0.34    0.00    0.35 
+# loop solution
+```
+
+*vector solution*
+```{r}
+system.time(
+  mydframe<-mydframe + 10*sin(0.75*pi)  
+)
+#user  system elapsed 
+  # 0.02    0.00    0.01 
+```
+
+##### Functions
+
+46. What are the general elements of a function? Which elements are not required?
+- name
+- argument
+- body of code which contains a return statement 
+- An argument is not required. For example, there was that function that was function() in our pre-test. You do  not need to have a return statement, but it is nesssecary if you want to pass a value  from the local environment of the function to the global environment
+
+47. How do you pass a value of an object from the local environment to the global environment (outside of a function)?
+- You pass the value of the object by using a return statement in your function. 
+
+48. What is the name of the R function that can help you identify errors in your function?
+- ```debug()```
+
+49. Aside from using the function identified in 3. above, what is another way to troubleshoot your functions? Hint: we used this in our first function oddcount in lab 1.
+- Put print statements throughout your function
+
+50. What is the name of a function to write your own error messages when writing a function?.
+- ```stop()``` and ```stopifnot```
+
+51. Why do you want to keep your functions short?
+- Makes code cleaner and easier to test
+- Makes code easier to update
+
+52. What are local versus global variables? Why do they matter when you write functions?
+- Local variables are the variables that are within the function themselves and global variables are the ones that make it to your R environment and that you can reference later and continue to do calculations on. They matter because we want to pass through the value of the local variable to a global variable by using ```return()``` so that we can continue to conduct analysis with this variable. 
+
+##### Creating Functions
+
+53. What happens if you write the function as following in the code below and test it on wavelength = 0.02 m?
+
+```{r}
+#wave_to_freq: converts wavelengths to frequency
+wave_to_freq <- function(wave) {
+  #note wavelength needs to be in meters
+  freq <- (299792458/wave) #speed of light in m/s
+  freq
+}
+paste("A wavelength of 10 cm has a frequency of", wave_to_freq(0.02),"Hz"  )
+```
+
+54. Using the new function definition from 7., what happens if you assign the function wave_to_freq() to object  x and call x?
+- I am a bit confused as to what 7 is referencing, but you cannot set a function to a variable if you include the () it will say that the arguement wave is missing with no default. If you just assign the function name to x, do not try to call the function, and print x, then R returns the body of the fuction/the setup of the fuction. 
+
+```{r}
+x <- wave_to_freq
+x
+```
+
+55. Write a function that converts nanometers (nm) to meters (m).
+
+```{r}
+# Converts nanometers to meters
+nano_to_meters <- function(nano){
+  meters <- nano * 1e-9
+  return(meters)
+}
+nano_to_meters(3)
+```
+
+##### Compound Functions
+
+56.Write a function that can take wavelength in micrometers as an input, and output the equivalent value in Giga Herz (GHz)
+```{r}
+#converts micrometers to gigahertz
+micro_to_ghz <- function(mm){
+   giga <- (299792458/(mm*1e-6))*1e-9
+   return(giga)
+}
+micro_to_ghz(1)
+#double check that if you reference the function before you get the same answer
+wave_to_freq(1e-6) * 1e-9
+``` 
+
+57. Using the function you wrote above, what radar band (provide the letter) corresponds to 30,000 micrometers?
+- You get the X band which is between 8 to 10 GHz 
+```{r}
+micro_to_ghz(30000)
+```
+
+##### lapply
+
+58. Use lapply() and a function to find the coefficient of variation (the standard deviation divided by the mean) for all columns in the mtcars dataset.
+
+```{r}
+m2 <- lapply(mtcars, function(x) sd(x) /mean(x))
+m2
+```
+
+
+59. The function below scales a vector so it falls in the range [0, 1]. How would you apply it to every column of a data frame? How would you apply it to every numeric column in a data frame?
+
+```{r}
+# apply to every column of the mtcars dataframe and print the head 
+scale01 <- function(x) {
+  rng <- range(x, na.rm = TRUE)
+  (x - rng[1]) / (rng[2] - rng[1])
+}
+head(sapply(mtcars, scale01))
+
+
+# apply to just numeric columns
+scale01_numeric <- function(x) {
+  if(is.numeric(x)){
+    rng <- range(x, na.rm = TRUE)
+  (x - rng[1]) / (rng[2] - rng[1])
+  }
+}
+iris_scaled <- iris
+iris_scaled[] <- lapply(iris,scale01_numeric)
+head(iris_scaled)
+```
+60. Use both for loops and lapply() to fit linear models to the mtcars data frame using the formulas stored in this list:
+
+```{r}
+formulas <- list(
+  mpg ~ disp, 
+  mpg ~ I(1 / disp), 
+  mpg ~ disp + wt,
+  mpg ~ I(1 / disp) + wt
+)
+
+# for loop
+for (i in 1:length(formulas)){
+  mymodel <- lm(formulas[[i]], data=mtcars) #i
+  print(mymodel)
+}
+
+#list
+lapply(formulas, lm, data=mtcars)
+``` 
+
+61. What are the sys.time() calculations for the loop and lapply() solutions above?
+
+```{r}
+# for loop
+system.time(for (i in 1:length(formulas)){
+  mymodel <- lm(formulas[[i]], data=mtcars) #i
+  print(mymodel)
+})
+#   user  system elapsed 
+#   0.00    0.04    0.07 
+
+#list
+system.time(lapply(formulas, lm, data=mtcars))
+#   user  system elapsed 
+#   0.02    0.00    0.02 
+
+```
+
+
